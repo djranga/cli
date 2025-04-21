@@ -971,6 +971,13 @@ const definitions = {
       version number, if not already set in package.json.
     `,
   }),
+  'init-private': new Definition('init-private', {
+    default: false,
+    type: Boolean,
+    description: `
+      The value \`npm init\` should use by default for the package's private flag.
+    `,
+  }),
   // these "aliases" are historically supported in .npmrc files, unfortunately
   // They should be removed in a future npm version.
   'init.author.email': new Definition('init.author.email', {

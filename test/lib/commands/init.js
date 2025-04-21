@@ -459,3 +459,58 @@ t.test('workspaces', async t => {
     t.ok(exists.isFile(), 'bin ran, creating file inside workspace')
   })
 })
+
+t.test('npm init with init-private config set', async t => {
+  const { npm, prefix } = await mockNpm(t, {
+    config: { yes: true, 'init-private': true },
+    noLog: true,
+  })
+
+  await npm.exec('init', [])
+
+  const pkg = require(resolve(prefix, 'package.json'))
+  t.equal(pkg.private, true, 'should set private to true when init-private is set')
+})
+
+t.test('npm init does not set private by default', async t => {
+  const { npm, prefix } = await mockNpm(t, {
+    config: { yes: true },
+    noLog: true,
+  })
+
+  await npm.exec('init', [])
+
+  const pkg = require(resolve(prefix, 'package.json'))
+  t.strictSame(Object.prototype.hasOwnProperty.call(pkg, 'private'), false, 'should not set private by default')
+})
+
+t.test('create‑initializer path: default init-private is NOT forwarded', async t => {
+  const calls = []
+  const libexecStub = async opts => calls.push(opts)
+
+  const { npm } = await mockNpm(t, {
+    libnpmexec: libexecStub,
+    config: { yes: true },
+    noLog: true,
+  })
+
+  await npm.exec('init', ['foo'])
+
+  t.notOk(Object.prototype.hasOwnProperty.call(calls[0], 'init-private'), 'flag not present')
+})
+
+t.test('create‑initializer path: user‑set init-private IS forwarded', async t => {
+  const calls = []
+  const libexecStub = async opts => calls.push(opts)
+
+  const { npm } = await mockNpm(t, {
+    libnpmexec: libexecStub,
+    // user set the flag in their config
+    config: { yes: true, 'init-private': true },
+    noLog: true,
+  })
+
+  await npm.exec('init', ['bar'])
+
+  t.equal(calls[0]['init-private'], true, 'flag forwarded with true value')
+})
